@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [hostname, setHostname] = useState("localhost");
@@ -10,6 +10,20 @@ export default function Home() {
   const [diagVisible, setDiagVisible] = useState(false);
   const [diagLogs, setDiagLogs] = useState<string[]>([]);
   const [diagStatus, setDiagStatus] = useState<"idle" | "running" | "done">("idle");
+  const logContainerRef = useRef<HTMLDivElement>(null);
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+    if (pageContainerRef.current) {
+      pageContainerRef.current.scrollTo({
+        top: pageContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }, [diagLogs, diagVisible]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -75,7 +89,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-between p-6 md:p-12 overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-[#09090b] dark:text-zinc-50 font-sans transition-colors duration-300">
+    <div ref={pageContainerRef} className="h-screen w-screen flex flex-col justify-between p-6 md:p-12 overflow-auto bg-zinc-50 text-zinc-900 dark:bg-[#09090b] dark:text-zinc-50 font-sans transition-colors duration-300">
       
       {/* Header */}
       <header className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-4">
@@ -110,22 +124,22 @@ export default function Home() {
         </div>
 
         {/* Diagnostic Key-Value Details */}
-        <div className="border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-5 bg-white/40 dark:bg-zinc-900/10 backdrop-blur-sm space-y-3 font-mono text-[11px] md:text-xs">
-          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2">
-            <span className="text-zinc-400 dark:text-zinc-500">Target Host</span>
-            <span className="text-zinc-700 dark:text-zinc-300 font-semibold">{hostname}</span>
+        <div className="border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-5 bg-white/40 dark:bg-zinc-900/10 backdrop-blur-sm space-y-3 font-mono text-[11px] md:text-xs overflow-x-auto">
+          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2 min-w-max gap-8">
+            <span className="text-zinc-400 dark:text-zinc-500 whitespace-nowrap">Target Host</span>
+            <span className="text-zinc-700 dark:text-zinc-300 font-semibold whitespace-nowrap">{hostname}</span>
           </div>
-          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2">
-            <span className="text-zinc-400 dark:text-zinc-500">Request ID</span>
-            <span className="text-zinc-700 dark:text-zinc-300">{requestId}</span>
+          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2 min-w-max gap-8">
+            <span className="text-zinc-400 dark:text-zinc-500 whitespace-nowrap">Request ID</span>
+            <span className="text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{requestId}</span>
           </div>
-          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2">
-            <span className="text-zinc-400 dark:text-zinc-500">IP Resolution</span>
-            <span className="text-zinc-700 dark:text-zinc-300">127.0.0.1</span>
+          <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/50 pb-2 min-w-max gap-8">
+            <span className="text-zinc-400 dark:text-zinc-500 whitespace-nowrap">IP Resolution</span>
+            <span className="text-zinc-700 dark:text-zinc-300 whitespace-nowrap">127.0.0.1</span>
           </div>
-          <div className="flex justify-between pb-0">
-            <span className="text-zinc-400 dark:text-zinc-500">System Log</span>
-            <span className="text-red-500 dark:text-rose-400 font-medium font-mono">ERR_CONNECTION_REFUSED</span>
+          <div className="flex justify-between pb-0 min-w-max gap-8">
+            <span className="text-zinc-400 dark:text-zinc-500 whitespace-nowrap">System Log</span>
+            <span className="text-red-500 dark:text-rose-400 font-medium font-mono whitespace-nowrap">ERR_CONNECTION_REFUSED</span>
           </div>
         </div>
 
@@ -135,7 +149,7 @@ export default function Home() {
             <button
               onClick={handleRetry}
               disabled={isRetrying}
-              className={`flex-1 h-11 flex items-center justify-center gap-2 rounded-md font-medium text-sm transition-all duration-200 shadow-sm border border-zinc-900 dark:border-zinc-100 ${
+              className={`w-full sm:flex-1 h-12 flex items-center justify-center gap-2 rounded-md font-medium text-sm transition-all duration-200 shadow-sm border border-zinc-900 dark:border-zinc-100 ${
                 isRetrying
                   ? "bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-600 dark:border-zinc-800 cursor-not-allowed"
                   : "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 cursor-pointer"
@@ -157,7 +171,7 @@ export default function Home() {
             <button
               onClick={runDiagnostics}
               disabled={diagStatus === "running"}
-              className="h-11 px-5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 active:bg-zinc-100 dark:active:bg-zinc-900 rounded-md font-medium text-sm text-zinc-600 dark:text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full sm:flex-1 h-12 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 active:bg-zinc-100 dark:active:bg-zinc-900 rounded-md font-medium text-sm text-zinc-600 dark:text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -177,7 +191,7 @@ export default function Home() {
                 </span>
               </div>
               
-              <div className="space-y-1 max-h-32 overflow-y-auto">
+              <div ref={logContainerRef} className="space-y-1 max-h-32 overflow-auto">
                 {diagLogs.map((log, idx) => {
                   let styleClass = "text-zinc-400";
                   if (log.includes("resolved successfully") || log.includes("responded in")) {
@@ -191,14 +205,14 @@ export default function Home() {
                   }
                   
                   return (
-                    <div key={idx} className={`${styleClass} leading-relaxed`}>
+                    <div key={idx} className={`${styleClass} leading-relaxed whitespace-nowrap min-w-max`}>
                       <span className="text-zinc-600 dark:text-zinc-700 mr-2 select-none">&gt;</span>
                       {log}
                     </div>
                   );
                 })}
                 {diagStatus === "running" && (
-                  <div className="text-zinc-500 animate-pulse flex items-center">
+                  <div className="text-zinc-500 animate-pulse flex items-center whitespace-nowrap min-w-max">
                     <span className="text-zinc-600 dark:text-zinc-700 mr-2 select-none">&gt;</span>
                     <span className="inline-block w-1.5 h-3 bg-zinc-400 ml-0.5" />
                   </div>
